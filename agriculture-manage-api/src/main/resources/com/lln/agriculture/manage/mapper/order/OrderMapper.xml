@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.manage.mapper.order.OrderMapper">
+    <select id="selectAllOrderPage" resultMap="BaseResultMap">
+        select order_id,
+               order_select.order_num,
+               order_select.name,
+               order_select.phone,
+               order_select.address,
+               order_select.detail,
+               order_select.user_id,
+               order_select.price,
+               order_select.status,
+               order_select.status_name,
+               order_select.track_number,
+               order_select.logistics_company_id,
+               order_select.create_time,
+               order_select.pay_time,
+               order_select.delivery_time,
+               order_select.confirm_time,
+               order_select.pay_method_id,
+               order_select.remark,
+               order_select.pay_order_num,
+               order_select.username,
+               order_select.email,
+               pay_method.name        pay_method_name,
+               logistics_company.name logistics_company_name
+                from (select `order`.id order_id,
+                             order_num,
+                             name,
+                             phone,
+                             address,
+                             detail,
+                             user_id,
+                             price,
+                             status,
+                             status_name,
+                             track_number,
+                             logistics_company_id,
+                             create_time,
+                             pay_time,
+                             delivery_time,
+                             confirm_time,
+                             pay_method_id,
+                             remark,
+                             pay_order_num,
+                             username,
+                             email
+                      from `order`,
+                           user,
+                           order_status
+                where user.id = `order`.user_id
+                  and order_status.id = status
+        <if test="status != null">
+            and status = #{status,jdbcType=INTEGER}
+        </if>
+        <if test="key != null and key != ''">
+            and (username = #{key,jdbcType=VARCHAR}
+                    or order_num = #{key,jdbcType=VARCHAR})
+        </if>
+        ) order_select
+                left join pay_method on pay_method_id = pay_method.id
+                left join logistics_company on logistics_company_id = logistics_company.id
+                order by create_time desc
+    </select>
+
+
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.common.domain.order.Order">
+        <id column="order_id" property="id"/>
+        <result column="order_num" property="orderNum"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="address" column="address"/>
+        <result property="detail" column="detail"/>
+        <result property="price" column="price"/>
+        <result property="trackNumber" column="track_number"/>
+        <result property="createTime" column="create_time"/>
+        <result property="payTime" column="pay_time"/>
+        <result property="deliveryTime" column="delivery_time"/>
+        <result property="confirmTime" column="confirm_time"/>
+        <result property="remark" column="remark"/>
+        <result property="payOrderNum" column="pay_order_num"/>
+        <association property="status" javaType="com.lln.agriculture.common.domain.order.Status">
+            <id property="id" column="status"/>
+            <result property="statusName" column="status_name"/>
+        </association>
+        <association property="user" javaType="com.lln.agriculture.common.domain.userinfo.User">
+            <id property="id" column="user_id"/>
+            <result property="username" column="username"/>
+            <result property="email" column="email"/>
+        </association>
+        <association property="payMethod" javaType="com.lln.agriculture.common.domain.order.PayMethod">
+            <id property="id" column="pay_method_id"/>
+            <result property="name" column="pay_method_name"/>
+        </association>
+        <association property="logisticsCompany" javaType="com.lln.agriculture.common.domain.order.LogisticsCompany">
+            <id property="id" column="logistics_company_id"/>
+            <result property="name" column="logistics_company_name"/>
+        </association>
+        <collection property="skus" ofType="com.lln.agriculture.common.domain.order.OrderSku" column="order_id"
+                    select="selectSkus">
+        </collection>
+    </resultMap>
+
+
+    <select id="selectSkus" resultMap="SelectSkuResultMap">
+        select id,
+               spu_id,
+               spu_name,
+               sku_name,
+               num,
+               spu_img,
+               sku_price,
+               order_id
+        from order_sku
+        where order_id = #{id}
+    </select>
+
+    <resultMap id="SelectSkuResultMap" type="com.lln.agriculture.common.domain.order.OrderSku">
+        <id property="id" column="id"/>
+        <result property="spuId" column="spu_id"/>
+        <result property="spuName" column="spu_name"/>
+        <result property="skuName" column="sku_name"/>
+        <result property="num" column="num"/>
+        <result property="spuImg" column="spu_img"/>
+        <result property="skuPrice" column="sku_price"/>
+    </resultMap>
+
+
+    <update id="updateOrderByOrderNumAndCheckStatus">
+        update `order`
+        <set>
+            <if test="order.name != null">
+                `name` = #{order.name,jdbcType=VARCHAR},
+            </if>
+            <if test="order.phone != null">
+                phone = #{order.phone,jdbcType=VARCHAR},
+            </if>
+            <if test="order.address != null">
+                address = #{order.address,jdbcType=VARCHAR},
+            </if>
+            <if test="order.detail != null">
+                detail = #{order.detail,jdbcType=VARCHAR},
+            </if>
+            <if test="order.user != null and order.user.id != null">
+                user_id = #{order.user.id,jdbcType=INTEGER},
+            </if>
+            <if test="order.price != null">
+                price = #{order.price,jdbcType=BIGINT},
+            </if>
+            <if test="order.status != null and order.status.id != null">
+                `status` = #{order.status.id,jdbcType=INTEGER},
+            </if>
+            <if test="order.trackNumber != null">
+                track_number = #{order.trackNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="order.logisticsCompany != null and order.logisticsCompany.id != null">
+                logistics_company_id = #{order.logisticsCompany.id,jdbcType=INTEGER},
+            </if>
+            <if test="order.createTime != null">
+                create_time = #{order.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="order.payTime != null">
+                pay_time = #{order.payTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="order.deliveryTime != null">
+                delivery_time = #{order.deliveryTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="order.confirmTime != null">
+                confirm_time = #{order.confirmTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="order.payMethod != null and order.payMethod.id != null">
+                pay_method_id = #{order.payMethod.id,jdbcType=INTEGER},
+            </if>
+            <if test="order.remark != null">
+                remark = #{order.remark,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="order.payOrderNum != null">
+                pay_order_num = #{order.payOrderNum,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where order_num = #{order.orderNum,jdbcType=INTEGER}
+          and status in
+        <foreach item="id" collection="status" open="(" close=")" separator=",">
+            #{id,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+    <select id="orderExist" resultType="boolean">
+        select count(*)
+        from `order`
+        where order_num = #{orderNum,jdbcType=VARCHAR}
+    </select>
+
+
+    <select id="selectByOrderNum" resultMap="BaseResultMap">
+        select order_id,
+               order_select.order_num,
+               order_select.name,
+               order_select.phone,
+               order_select.address,
+               order_select.detail,
+               order_select.user_id,
+               order_select.price,
+               order_select.status,
+               order_select.status_name,
+               order_select.track_number,
+               order_select.logistics_company_id,
+               order_select.create_time,
+               order_select.pay_time,
+               order_select.delivery_time,
+               order_select.confirm_time,
+               order_select.pay_method_id,
+               order_select.remark,
+               order_select.pay_order_num,
+               order_select.username,
+               order_select.email,
+               pay_method.name        pay_method_name,
+               logistics_company.name logistics_company_name
+        from (select `order`.id order_id,
+                     order_num,
+                     name,
+                     phone,
+                     address,
+                     detail,
+                     user_id,
+                     price,
+                     status,
+                     status_name,
+                     track_number,
+                     logistics_company_id,
+                     create_time,
+                     pay_time,
+                     delivery_time,
+                     confirm_time,
+                     pay_method_id,
+                     remark,
+                     pay_order_num,
+                     username,
+                     email
+              from `order`,
+                   user,
+                   order_status
+              where user.id = `order`.user_id
+                and order_status.id = status
+                and order_num = #{orderNum}
+                     ) order_select
+                     left join pay_method on pay_method_id = pay_method.id
+                     left join logistics_company on logistics_company_id = logistics_company.id
+        order by create_time desc
+    </select>
+</mapper>

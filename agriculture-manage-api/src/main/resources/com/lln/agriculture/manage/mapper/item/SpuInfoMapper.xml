@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.manage.mapper.item.SpuInfoMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.common.domain.item.SpuInfo">
+        <!--@mbg.generated-->
+        <!--@Table spu_info-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="spu_id" jdbcType="INTEGER" property="spuId"/>
+        <result column="attr" jdbcType="VARCHAR" property="attr"/>
+        <result column="specification" jdbcType="VARCHAR" property="specification"/>
+        <result column="description" jdbcType="LONGVARCHAR" property="description"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, spu_id, attr, specification, description
+    </sql>
+    <insert id="insert" parameterType="com.lln.agriculture.common.domain.item.SpuInfo">
+        <!--@mbg.generated-->
+        insert into spu_info (spu_id, attr,
+                              specification, description)
+        values (#{param1,jdbcType=INTEGER}, #{param2.attr,jdbcType=VARCHAR},
+                #{param2.specification,jdbcType=VARCHAR}, #{param2.description,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <delete id="deleteInfoBySpuId">
+        delete
+        from spu_info
+        where spu_id = #{spuId}
+    </delete>
+
+    <update id="updateBySpuId">
+        update spu_info
+        set description=#{param2.description},
+            attr=#{param2.attr}
+        where spu_id = #{param1}
+    </update>
+</mapper>

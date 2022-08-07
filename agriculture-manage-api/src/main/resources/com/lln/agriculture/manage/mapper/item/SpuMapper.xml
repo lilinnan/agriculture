@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.manage.mapper.item.SpuMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.common.domain.item.Spu">
+        <!--@mbg.generated-->
+        <!--@Table spu-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="saleable" jdbcType="BOOLEAN" property="saleable"/>
+        <result column="delete" jdbcType="BOOLEAN" property="delete"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, `name`, saleable, `delete`
+    </sql>
+    <insert id="insertSpu" keyColumn="id" keyProperty="id" parameterType="com.lln.agriculture.common.domain.item.Spu"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into spu (`name`, saleable, `delete`,
+                         brand_id)
+        values (#{name,jdbcType=VARCHAR}, #{saleable,jdbcType=BOOLEAN}, #{delete,jdbcType=BOOLEAN},
+                #{brand.id,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="insertSpuCategory">
+        insert into spu_category(spu_id, category_id)
+        values (#{param1}, #{param2})
+    </insert>
+
+    <select id="selectAllSpuPage" resultMap="BaseResultMap">
+        select id, name, saleable
+        from spu
+                where `delete` = 0
+        <if test="_parameter != null and _parameter != ''">
+            and (id = '${_parameter}'
+                    or name like '%${_parameter}%')
+        </if>
+    </select>
+
+    <select id="selectSpuById" resultMap="selectSpuByIdMap">
+        select spu.id                  spuId,
+               spu.name                spuName,
+               saleable                saleable,
+               `delete`,
+               brand_id                brandId,
+               brand.name              brandName,
+               spu_img.id              imgId,
+               spu_img.img             img,
+               category.id             categoryId,
+               category.name           categoryName,
+               spu_info.attr           attr,
+               spu_info.description    description,
+               spu_info.id             infoId,
+               spu_info.specification  specification,
+               sku.id                  skuId,
+               sku.price               skuPrice,
+               sku.specification_value specificationValue,
+               sku.stock               skuStock,
+               sku.name                skuName
+        from spu,
+             brand,
+             spu_img,
+             spu_category,
+             category,
+             spu_info,
+             sku
+        where spu.brand_id = brand.id
+          and spu.id = spu_img.spu_id
+          and spu_category.spu_id = spu.id
+          and spu_category.category_id = category.id
+          and spu_info.spu_id = spu.id
+          and sku.spu_id = spu.id
+          and spu.id = #{spuId}
+    </select>
+
+
+    <resultMap id="selectSpuByIdMap" type="com.lln.agriculture.common.domain.item.Spu">
+        <id column="spuId" property="id"/>
+        <result column="spuName" property="name"/>
+        <result column="saleable" property="saleable"/>
+        <result property="delete" column="delete"/>
+        <association property="brand" javaType="com.lln.agriculture.common.domain.item.Brand">
+            <id column="brandId" property="id"/>
+            <result column="brandName" property="name"/>
+        </association>
+        <association property="spuInfo" javaType="com.lln.agriculture.common.domain.item.SpuInfo">
+            <id property="id" column="infoId"/>
+            <result column="spuId" property="spuId"/>
+            <result property="attr" column="attr"/>
+            <result property="description" column="description"/>
+            <result property="specification" column="specification"/>
+        </association>
+        <collection property="spuImgs" ofType="com.lln.agriculture.common.domain.item.SpuImg">
+            <id property="id" column="imgId"/>
+            <result column="img" property="img"/>
+        </collection>
+        <collection property="categories" ofType="com.lln.agriculture.common.domain.item.Category">
+            <id property="id" column="categoryId"/>
+            <result property="name" column="categoryName"/>
+        </collection>
+        <collection property="skus" ofType="com.lln.agriculture.common.domain.item.Sku">
+            <id property="id" column="skuId"/>
+            <result property="spuId" column="spuId"/>
+            <result property="price" column="skuPrice"/>
+            <result property="specificationValue" column="specificationValue"/>
+            <result property="stock" column="skuStock"/>
+            <result property="name" column="skuName"/>
+        </collection>
+    </resultMap>
+
+    <update id="deleteSpuById">
+        update spu
+        set `delete`=1
+        where id = #{spuId}
+    </update>
+
+    <update id="updateSpuBasicInfo">
+        update spu
+        <set>
+            <if test="name != null and name != ''">
+                name=#{name,jdbcType=VARCHAR},
+            </if>
+            <if test="saleable != null">
+                saleable=#{saleable,jdbcType=BOOLEAN},
+            </if>
+            <if test="brand.id != null">
+                brand_id=#{brand.id,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <delete id="deleteSpuCategoryBySpuId">
+        delete
+        from spu_category
+        where spu_id = #{spuId}
+    </delete>
+
+    <select id="selectAllDeletedSpu" resultMap="BaseResultMap">
+        select id, name, saleable
+        from spu
+                where `delete` = 1
+        <if test="_parameter != null and _parameter != ''">
+            and (id = '${_parameter}'
+                    or name like '%${_parameter}%')
+        </if>
+    </select>
+
+    <update id="restoreDeletedSpu">
+        update spu
+        set `delete`=0
+        where id = #{spuId}
+    </update>
+
+    <delete id="realDeleteSpu">
+        delete
+        from spu
+        where id = #{spuId}
+    </delete>
+
+    <update id="updateSpuSaleable">
+        update spu
+        set saleable=#{saleable,jdbcType=BOOLEAN}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+</mapper>

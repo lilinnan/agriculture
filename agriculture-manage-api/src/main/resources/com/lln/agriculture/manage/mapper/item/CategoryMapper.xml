@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.manage.mapper.item.CategoryMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.common.domain.item.Category">
+        <!--@mbg.generated-->
+        <!--@Table category-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, `name`
+    </sql>
+
+    <insert id="insertCategory" useGeneratedKeys="true" keyColumn="id" keyProperty="id"
+            parameterType="com.lln.agriculture.common.domain.item.Category">
+        insert into category(name)
+        values (#{name})
+    </insert>
+
+    <insert id="insertCategoryPathToTree">
+        insert into category_tree(ancestor, descendant, distance) (select ancestor, #{id}, distance + 1
+                                                                   from category_tree
+                                                                   where descendant = #{parentId});
+    </insert>
+
+
+    <insert id="insertCategoryNodeToTree">
+        insert into category_tree(ancestor, descendant, distance)
+        values (#{id,jdbcType=INTEGER}, #{id,jdbcType=INTEGER}, 0)
+    </insert>
+
+    <select id="selectAll" resultMap="selectAllResultMapper">
+        select category.id id, category.name name, category_tree.ancestor parent
+        from category,
+             category_tree
+        where category_tree.ancestor = #{parentId}
+          and category_tree.distance = 1
+          and category.id = category_tree.descendant
+    </select>
+
+    <resultMap id="selectAllResultMapper" type="com.lln.agriculture.common.domain.item.Category">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="parent" property="parentId"/>
+        <collection property="children" ofType="com.lln.agriculture.common.domain.item.Category" column="id"
+                    select="selectAll">
+        </collection>
+    </resultMap>
+
+    <update id="updateCategoryName">
+        update category
+        set name=#{name}
+        where id = #{id}
+    </update>
+
+    <select id="selectAllNode" resultType="java.lang.Integer">
+        select descendant
+        from category_tree
+        where ancestor = #{parentId}
+    </select>
+
+    <delete id="deleteNodeById">
+        delete
+        from category_tree
+        where descendant = #{id}
+    </delete>
+
+    <delete id="deleteCategoryId">
+        delete
+        from category
+        where id = #{id};
+    </delete>
+</mapper>

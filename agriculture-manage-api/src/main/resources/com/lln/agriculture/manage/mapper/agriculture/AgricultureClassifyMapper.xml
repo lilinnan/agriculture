@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.manage.mapper.agriculture.AgricultureClassifyMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.common.agriculture.AgricultureClassify">
+        <!--@mbg.generated-->
+        <!--@Table agriculture_classify-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="entity_id" jdbcType="INTEGER" property="entityId"/>
+        <collection property="details" ofType="com.lln.agriculture.common.agriculture.AgricultureDetail">
+            <id property="id" column="detail_id"/>
+            <result property="name" column="detail_name"/>
+        </collection>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, `name`, entity_id
+    </sql>
+    <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="com.lln.agriculture.common.agriculture.AgricultureClassify" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into agriculture_classify (`name`, entity_id)
+        values (#{name,jdbcType=VARCHAR}, #{entityId,jdbcType=INTEGER})
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id"
+            parameterType="com.lln.agriculture.common.agriculture.AgricultureClassify" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into agriculture_classify
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">
+                `name`,
+            </if>
+            <if test="entityId != null">
+                entity_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="entityId != null">
+                #{entityId,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.lln.agriculture.common.agriculture.AgricultureClassify">
+        <!--@mbg.generated-->
+        update agriculture_classify
+        <set>
+            <if test="name != null">
+                `name` = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="entityId != null">
+                entity_id = #{entityId,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectAllClassifyByEntityId" resultMap="BaseResultMap">
+        select classify.id,
+               classify.name,
+               classify.entity_id,
+               agriculture_detail.id   detail_id,
+               agriculture_detail.name detail_name
+        from (select id, name, entity_id
+              from agriculture_classify
+              where entity_id = #{entityId}) classify
+                     left join agriculture_detail on classify.id = agriculture_detail.classify_id
+    </select>
+
+    <delete id="deleteByPrimaryKey">
+        delete
+        from agriculture_classify
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteByEntityId">
+        delete
+        from agriculture_classify
+        where entity_id = #{entityId}
+    </delete>
+</mapper>

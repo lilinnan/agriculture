@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<!--suppress ThymeleafVariablesResolveInspection -->
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title th:text="${title}"></title>
+</head>
+<body>
+<p>
+    Hi，<span th:text="${username}"></span>，欢迎注册<span th:text="${systemName}"></span>。
+</p>
+<p>
+    我们需要对您的邮件进行验证，请点击<a th:href="${url}">这里</a>进行验证，如无法点击，请复制下方链接到浏览器打开。
+</p>
+<p>
+    <span th:text="${url}"></span>
+</p>
+</body>
+</html>

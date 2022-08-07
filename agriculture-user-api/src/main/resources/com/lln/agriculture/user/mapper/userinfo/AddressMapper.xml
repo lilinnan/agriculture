@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.user.mapper.userinfo.AddressMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.common.domain.userinfo.Address">
+        <!--@mbg.generated-->
+        <!--@Table address-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="phone" jdbcType="VARCHAR" property="phone"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="detail" jdbcType="VARCHAR" property="detail"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, user_id, `name`, phone, address, detail
+    </sql>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.lln.agriculture.common.domain.userinfo.Address"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into address (user_id, `name`, phone,
+                             address, detail)
+        values (#{userId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR},
+                #{address,jdbcType=VARCHAR}, #{detail,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="selectUserIdById" resultType="java.lang.Integer">
+        select user_id
+        from address
+        where id = #{id}
+    </select>
+
+    <update id="updateAddressByPrimaryKeySelective">
+        update address
+        <set>
+            <if test="name != null and name != ''">
+                name=#{name,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null and address != ''">
+                address=#{address,jdbcType=VARCHAR},
+            </if>
+            <if test="detail != null and detail != ''">
+                detail=#{detail,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null and phone != ''">
+                phone=#{phone,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteAddressByPrimaryKey">
+        delete
+        from address
+        where id = #{id}
+    </delete>
+
+    <select id="selectAllAddressByUserId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List">
+        </include>
+        from address
+        where user_id = #{id}
+    </select>
+
+    <select id="selectAddressByIdAndUsername" resultMap="BaseResultMap">
+        select address.id      id,
+               address.address address,
+               address.user_id user_id,
+               address.name    name,
+               address.detail  detail,
+               address.phone   phone
+        from address,
+             user
+        where user.username = #{param2}
+          and address.user_id = user.id
+          and address.id = #{param1}
+    </select>
+</mapper>

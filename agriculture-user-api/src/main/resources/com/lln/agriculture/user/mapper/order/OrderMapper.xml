@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.user.mapper.order.OrderMapper">
+    <select id="selectOrdersByUsername" resultMap="orderResultMap">
+        select order_id,
+               order_num,
+               order_select.name,
+               phone,
+               address,
+               detail,
+               price,
+               status,
+               status_name,
+               track_number,
+               logistics_company_id,
+               create_time,
+               pay_time,
+               delivery_time,
+               confirm_time,
+               pay_method_id,
+               remark,
+               pay_order_num,
+               order_sku_id,
+               spu_id,
+               spu_name,
+               sku_name,
+               num,
+               spu_img,
+               sku_price,
+               sku_id,
+               pay_method.name        pay_method_name,
+               logistics_company.name logistics_company_name
+                from (select `order`.id   order_id,
+                             order_num,
+                             `order`.`name`,
+                             phone,
+                             address,
+                             detail,
+                             price,
+                             `status`,
+                             status_name,
+                             track_number,
+                             logistics_company_id,
+                             create_time,
+                             pay_time,
+                             delivery_time,
+                             confirm_time,
+                             pay_method_id,
+                             remark,
+                             pay_order_num,
+                             order_sku.id order_sku_id,
+                             spu_id,
+                             spu_name,
+                             sku_name,
+                             num,
+                             spu_img,
+                             sku_price,
+                             sku_id
+                      from `order`,
+                           order_sku,
+                           user,
+                           order_status
+        <where>
+            <if test="param2 != null">
+                status = #{param2,jdbcType=INTEGER}
+                        and
+            </if>
+            user.username = #{param1,jdbcType=VARCHAR}
+                    and `order`.user_id = user.id
+                    and `order`.id = order_sku.order_id
+                    and status = order_status.id
+        </where>
+        ) order_select
+                left join pay_method on pay_method_id = pay_method.id
+                left join logistics_company on logistics_company_id = logistics_company.id
+                order by create_time desc;
+    </select>
+
+    <!--    <select id="selectOrdersByUsername" resultMap="orderResultMap">-->
+    <!--        select `order`.id             order_id,-->
+    <!--               `order`.order_num,-->
+    <!--               `order`.name,-->
+    <!--               `order`.phone,-->
+    <!--               `order`.address,-->
+    <!--               `order`.detail,-->
+    <!--               `order`.price,-->
+    <!--               `order`.status,-->
+    <!--               `order`.track_number,-->
+    <!--               `order`.logistics_company_id,-->
+    <!--               `order`.create_time,-->
+    <!--               `order`.pay_time,-->
+    <!--               `order`.delivery_time,-->
+    <!--               `order`.confirm_time,-->
+    <!--               `order`.pay_method_id,-->
+    <!--               `order`.remark,-->
+    <!--               `order`.pay_order_num,-->
+    <!--               order_sku.id,-->
+    <!--               order_sku.spu_id,-->
+    <!--               order_sku.spu_name,-->
+    <!--               order_sku.sku_name,-->
+    <!--               order_sku.num,-->
+    <!--               order_sku.spu_img,-->
+    <!--               order_sku.sku_price,-->
+    <!--               logistics_company.name logistics_company_name,-->
+    <!--               pay_method.name        pay_method_name-->
+    <!--        from `order`-->
+    <!--                     left join user on user.id = `order`.user_id-->
+    <!--                     left join order_sku on `order`.id = order_sku.order_id-->
+    <!--                     left join logistics_company on `order`.logistics_company_id = logistics_company.id-->
+    <!--                     left join pay_method on `order`.pay_method_id = pay_method.id-->
+    <!--                where username = #{param1,jdbcType=VARCHAR}-->
+    <!--        <if test="param2 != null">-->
+    <!--            and status = #{param2,jdbcType=INTEGER}-->
+    <!--        </if>-->
+    <!--    </select>-->
+
+
+    <resultMap id="orderResultMap" type="com.lln.agriculture.common.domain.order.Order">
+        <id column="order_id" jdbcType="INTEGER" property="id"/>
+        <result column="order_num" jdbcType="VARCHAR" property="orderNum"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="phone" jdbcType="VARCHAR" property="phone"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="detail" jdbcType="VARCHAR" property="detail"/>
+        <result column="price" jdbcType="BIGINT" property="price"/>
+        <result column="track_number" jdbcType="VARCHAR" property="trackNumber"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="pay_time" jdbcType="TIMESTAMP" property="payTime"/>
+        <result column="delivery_time" jdbcType="TIMESTAMP" property="deliveryTime"/>
+        <result column="confirm_time" jdbcType="TIMESTAMP" property="confirmTime"/>
+        <result column="remark" jdbcType="LONGVARCHAR" property="remark"/>
+        <result column="pay_order_num" jdbcType="VARCHAR" property="payOrderNum"/>
+        <association property="status" javaType="com.lln.agriculture.common.domain.order.Status">
+            <id property="id" column="status"/>
+            <result property="statusName" column="status_name"/>
+        </association>
+        <association property="logisticsCompany" javaType="com.lln.agriculture.common.domain.order.LogisticsCompany">
+            <id property="id" column="logistics_company_id"/>
+            <result column="logistics_company_name" property="name"/>
+        </association>
+        <association property="payMethod" javaType="com.lln.agriculture.common.domain.order.PayMethod">
+            <id property="id" column="pay_method_id"/>
+            <result column="pay_method_name" property="name"/>
+        </association>
+        <collection property="skus" ofType="com.lln.agriculture.common.domain.order.OrderSku">
+            <id column="order_sku_id" jdbcType="INTEGER" property="id"/>
+            <result column="spu_id" jdbcType="INTEGER" property="spuId"/>
+            <result column="spu_name" jdbcType="VARCHAR" property="spuName"/>
+            <result column="sku_name" jdbcType="VARCHAR" property="skuName"/>
+            <result column="num" jdbcType="INTEGER" property="num"/>
+            <result column="spu_img" jdbcType="LONGVARCHAR" property="spuImg"/>
+            <result column="sku_price" jdbcType="BIGINT" property="skuPrice"/>
+            <result column="sku_id" jdbcType="INTEGER" property="skuId"/>
+        </collection>
+    </resultMap>
+
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        <!--@mbg.generated-->
+        delete
+        from `order`
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.lln.agriculture.common.domain.order.Order"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into `order` (order_num, `name`, phone,
+                             address, detail, user_id,
+                             price, `status`, track_number,
+                             logistics_company_id, create_time, pay_time,
+                             delivery_time, confirm_time, pay_method_id,
+                             remark, pay_order_num)
+        values (#{orderNum,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR},
+                #{address,jdbcType=VARCHAR}, #{detail,jdbcType=VARCHAR}, #{user.id,jdbcType=INTEGER},
+                #{price,jdbcType=BIGINT}, #{status.id,jdbcType=INTEGER}, #{trackNumber,jdbcType=VARCHAR},
+                #{logisticsCompany.id,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+                #{payTime,jdbcType=TIMESTAMP},
+                #{deliveryTime,jdbcType=TIMESTAMP}, #{confirmTime,jdbcType=TIMESTAMP}, #{payMethod.id,jdbcType=INTEGER},
+                #{remark,jdbcType=LONGVARCHAR}, #{payOrderNum,jdbcType=VARCHAR})
+    </insert>
+
+
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.lln.agriculture.common.domain.order.Order"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into `order`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderNum != null">
+                order_num,
+            </if>
+            <if test="name != null">
+                `name`,
+            </if>
+            <if test="phone != null">
+                phone,
+            </if>
+            <if test="address != null">
+                address,
+            </if>
+            <if test="detail != null">
+                detail,
+            </if>
+            <if test="user != null and user.id != null">
+                user_id,
+            </if>
+            <if test="price != null">
+                price,
+            </if>
+            <if test="status != null and status.id != null">
+                `status`,
+            </if>
+            <if test="trackNumber != null">
+                track_number,
+            </if>
+            <if test="logisticsCompany != null and logisticsCompany.id != null">
+                logistics_company_id,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="payTime != null">
+                pay_time,
+            </if>
+            <if test="deliveryTime != null">
+                delivery_time,
+            </if>
+            <if test="confirmTime != null">
+                confirm_time,
+            </if>
+            <if test="payMethod != null and payMethod.id != null">
+                pay_method_id,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="payOrderNum != null">
+                pay_order_num,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderNum != null">
+                #{orderNum,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null">
+                #{phone,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null">
+                #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="detail != null">
+                #{detail,jdbcType=VARCHAR},
+            </if>
+            <if test="user != null and user.id != null">
+                #{user.id,jdbcType=INTEGER},
+            </if>
+            <if test="price != null">
+                #{price,jdbcType=BIGINT},
+            </if>
+            <if test="status != null and status.id != null">
+                #{status.id,jdbcType=INTEGER},
+            </if>
+            <if test="trackNumber != null">
+                #{trackNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="logisticsCompany != null and logisticsCompany.id != null">
+                #{logisticsCompany.id,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="payTime != null">
+                #{payTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deliveryTime != null">
+                #{deliveryTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="confirmTime != null">
+                #{confirmTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="payMethod != null and payMethod.id != null">
+                #{payMethod.id,jdbcType=INTEGER},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="payOrderNum != null">
+                #{payOrderNum,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.lln.agriculture.common.domain.order.Order">
+        <!--@mbg.generated-->
+        update `order`
+        <set>
+            <if test="orderNum != null">
+                order_num = #{orderNum,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                `name` = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null">
+                phone = #{phone,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null">
+                address = #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="detail != null">
+                detail = #{detail,jdbcType=VARCHAR},
+            </if>
+            <if test="user != null and user.id != null">
+                user_id = #{user.id,jdbcType=INTEGER},
+            </if>
+            <if test="price != null">
+                price = #{price,jdbcType=BIGINT},
+            </if>
+            <if test="status != null and status.id != null">
+                `status` = #{status.id,jdbcType=INTEGER},
+            </if>
+            <if test="trackNumber != null">
+                track_number = #{trackNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="logisticsCompany != null and logisticsCompany.id != null">
+                logistics_company_id = #{logisticsCompany.id,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="payTime != null">
+                pay_time = #{payTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deliveryTime != null">
+                delivery_time = #{deliveryTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="confirmTime != null">
+                confirm_time = #{confirmTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="payMethod != null and payMethod.id != null">
+                pay_method_id = #{payMethod.id,jdbcType=INTEGER},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="payOrderNum != null">
+                pay_order_num = #{payOrderNum,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+
+    <update id="updateByPrimaryKey" parameterType="com.lln.agriculture.common.domain.order.Order">
+        <!--@mbg.generated-->
+        update `order`
+        set order_num            = #{orderNum,jdbcType=VARCHAR},
+            `name`               = #{name,jdbcType=VARCHAR},
+            phone                = #{phone,jdbcType=VARCHAR},
+            address              = #{address,jdbcType=VARCHAR},
+            detail               = #{detail,jdbcType=VARCHAR},
+            user_id              = #{user.id,jdbcType=INTEGER},
+            price                = #{price,jdbcType=BIGINT},
+            `status`             = #{status.id,jdbcType=INTEGER},
+            track_number         = #{trackNumber,jdbcType=VARCHAR},
+            logistics_company_id = #{logisticsCompany.id,jdbcType=INTEGER},
+            create_time          = #{createTime,jdbcType=TIMESTAMP},
+            pay_time             = #{payTime,jdbcType=TIMESTAMP},
+            delivery_time        = #{deliveryTime,jdbcType=TIMESTAMP},
+            confirm_time         = #{confirmTime,jdbcType=TIMESTAMP},
+            pay_method_id        = #{payMethod.id,jdbcType=INTEGER},
+            remark               = #{remark,jdbcType=LONGVARCHAR},
+            pay_order_num        = #{payOrderNum,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+
+    <update id="updateOrderByOrderNumAndCheckStatus">
+        update `order`
+        <set>
+            <if test="order.name != null">
+                `name` = #{order.name,jdbcType=VARCHAR},
+            </if>
+            <if test="order.phone != null">
+                phone = #{order.phone,jdbcType=VARCHAR},
+            </if>
+            <if test="order.address != null">
+                address = #{order.address,jdbcType=VARCHAR},
+            </if>
+            <if test="order.detail != null">
+                detail = #{order.detail,jdbcType=VARCHAR},
+            </if>
+            <if test="order.user != null and order.user.id != null">
+                user_id = #{order.user.id,jdbcType=INTEGER},
+            </if>
+            <if test="order.price != null">
+                price = #{order.price,jdbcType=BIGINT},
+            </if>
+            <if test="order.status != null and order.status.id != null">
+                `status` = #{order.status.id,jdbcType=INTEGER},
+            </if>
+            <if test="order.trackNumber != null">
+                track_number = #{order.trackNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="order.logisticsCompany != null and order.logisticsCompany.id != null">
+                logistics_company_id = #{order.logisticsCompany.id,jdbcType=INTEGER},
+            </if>
+            <if test="order.createTime != null">
+                create_time = #{order.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="order.payTime != null">
+                pay_time = #{order.payTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="order.deliveryTime != null">
+                delivery_time = #{order.deliveryTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="order.confirmTime != null">
+                confirm_time = #{order.confirmTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="order.payMethod != null and order.payMethod.id != null">
+                pay_method_id = #{order.payMethod.id,jdbcType=INTEGER},
+            </if>
+            <if test="order.remark != null">
+                remark = #{order.remark,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="order.payOrderNum != null">
+                pay_order_num = #{order.payOrderNum,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where order_num = #{order.orderNum,jdbcType=INTEGER}
+          and status in
+        <foreach collection="status" item="item" separator="," open="(" close=")">
+            #{item,jdbcType=INTEGER}
+        </foreach>
+    </update>
+
+    <select id="selectByOrderNumAndUsername" resultMap="orderResultMap">
+        select order_id,
+               order_num,
+               order_select.name,
+               phone,
+               address,
+               detail,
+               price,
+               status,
+               status_name,
+               track_number,
+               logistics_company_id,
+               create_time,
+               pay_time,
+               delivery_time,
+               confirm_time,
+               pay_method_id,
+               remark,
+               pay_order_num,
+               order_sku_id,
+               spu_id,
+               spu_name,
+               sku_name,
+               num,
+               spu_img,
+               sku_price,
+               sku_id,
+               pay_method.name        pay_method_name,
+               logistics_company.name logistics_company_name
+        from (select `order`.id   order_id,
+                     order_num,
+                     `order`.`name`,
+                     phone,
+                     address,
+                     detail,
+                     price,
+                     `status`,
+                     status_name,
+                     track_number,
+                     logistics_company_id,
+                     create_time,
+                     pay_time,
+                     delivery_time,
+                     confirm_time,
+                     pay_method_id,
+                     remark,
+                     pay_order_num,
+                     order_sku.id order_sku_id,
+                     spu_id,
+                     spu_name,
+                     sku_name,
+                     num,
+                     spu_img,
+                     sku_price,
+                     sku_id
+              from `order`,
+                   order_sku,
+                   user,
+                   order_status
+              WHERE user.username = #{username,jdbcType=VARCHAR}
+                and order_num = #{orderNum,jdbcType=VARCHAR}
+                and `order`.user_id = user.id
+                and order_status.id = status
+                and `order`.id = order_sku.order_id) order_select
+                     left join pay_method on pay_method_id = pay_method.id
+                     left join logistics_company on logistics_company_id = logistics_company.id
+        order by create_time desc;
+    </select>
+</mapper>

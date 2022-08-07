@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.manage.mapper.item.BrandMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.common.domain.item.Brand">
+        <!--@mbg.generated-->
+        <!--@Table brand-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, `name`
+    </sql>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.lln.agriculture.common.domain.item.Brand"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into brand (`name`)
+        values (#{name,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="selectAllPage" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List">
+        </include>
+        from brand
+        <where>
+            <if test="_parameter != null and _parameter != ''">
+                id like '${_parameter}'
+                        or name like '%${_parameter}%'
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteById">
+        delete
+        from brand
+        where id = #{id}
+    </delete>
+
+    <update id="updateByIdSelective">
+        update brand
+        <set>
+            <if test="name != null and name != ''">
+                name=#{name}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+</mapper>

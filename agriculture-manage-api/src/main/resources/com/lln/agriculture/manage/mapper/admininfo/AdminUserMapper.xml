@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.manage.mapper.admininfo.AdminUserMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.manage.domain.admininfo.AdminUser">
+        <!--@mbg.generated-->
+        <!--@Table admin_user-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="avatar" jdbcType="VARCHAR" property="avatar"/>
+        <result column="account_non_expired" jdbcType="BOOLEAN" property="accountNonExpired"/>
+        <result column="account_non_locked" jdbcType="BOOLEAN" property="accountNonLocked"/>
+        <result column="credentials_non_expired" jdbcType="BOOLEAN" property="credentialsNonExpired"/>
+        <result column="enabled" jdbcType="BOOLEAN" property="enabled"/>
+        <result column="user_description" jdbcType="VARCHAR" property="description"/>
+        <collection property="roles" ofType="com.lln.agriculture.manage.domain.authority.AdminRole">
+            <result column="role" property="role"/>
+            <result column="role_description" property="description"/>
+            <collection property="authorities" ofType="com.lln.agriculture.manage.domain.authority.AdminAuthority">
+                <result column="authority" property="authority"/>
+                <result column="authority_description" property="description"/>
+            </collection>
+        </collection>
+    </resultMap>
+    <sql id="Base_Column_List">
+        username,
+        `password`,
+        account_non_expired,
+        account_non_locked,
+        credentials_non_expired,
+        enabled,
+        avatar
+    </sql>
+    <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="com.lln.agriculture.manage.domain.admininfo.AdminUser"
+            useGeneratedKeys="true">
+        insert into admin_user (username, `password`, account_non_expired,
+                                account_non_locked, credentials_non_expired,
+                                enabled, description, avatar)
+        values (#{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{accountNonExpired,jdbcType=BOOLEAN},
+                #{accountNonLocked,jdbcType=BOOLEAN}, #{credentialsNonExpired,jdbcType=BOOLEAN},
+                #{enabled,jdbcType=BOOLEAN}, #{description,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        select admin_user.id,
+        <include refid="Base_Column_List"/>,
+            admin_role.role             role,
+            admin_authority.authority   authority,
+            admin_role.description      role_description,
+            admin_user.description      user_description,
+            admin_authority.description authority_description
+            from (select * from admin_user where username = #{username,jdbcType=VARCHAR}) admin_user
+                         left join admin_user_role on admin_user.id = admin_user_role.user_id
+                         left join admin_role on admin_user_role.role_id = admin_role.id
+                         left join admin_role_authority on admin_role.id = admin_role_authority.role_id
+                         left join admin_authority on admin_role_authority.authority_id = admin_authority.id;
+    </select>
+
+    <select id="selectAdminUserPassword" resultType="java.lang.String">
+        select password
+        from admin_user
+        where username = #{username,jdbcType=VARCHAR}
+    </select>
+
+    <update id="changePassword">
+        update admin_user
+        set password=#{param2,jdbcType=VARCHAR}
+        where username = #{param1,jdbcType=VARCHAR}
+    </update>
+
+
+    <!--分页查询角色列表，用于显示到前端，注意这里没有权限信息-->
+    <select id="selectAllPage" resultMap="selectAllPageResultMap">
+        select admin_user.id      id,
+               username           username,
+               account_non_locked account_non_locked,
+               enabled            enabled,
+               description        user_description,
+               avatar             avatar
+        from admin_user
+        <where>
+            <if test="_parameter != null and _parameter != ''">
+                admin_user.id = '${_parameter}'
+                        or admin_user.username like '%${_parameter}%'
+                        or admin_user.description like '%${_parameter}%'
+            </if>
+        </where>
+    </select>
+
+    <resultMap id="selectAllPageResultMap" type="com.lln.agriculture.manage.domain.admininfo.AdminUser">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="account_non_locked" property="accountNonLocked"/>
+        <result column="enabled" property="enabled"/>
+        <result column="user_description" property="description"/>
+        <result column="avatar" property="avatar"/>
+        <collection property="roles" ofType="com.lln.agriculture.manage.domain.authority.AdminRole"
+                    select="selectRoleByUserId" column="id"/>
+    </resultMap>
+
+    <select id="selectRoleByUserId" parameterType="int" resultMap="selectRoleResultMap">
+        select admin_role.id          role_id,
+               admin_role.role        role,
+               admin_role.description role_description
+        from admin_role,
+             admin_user_role
+        where admin_user_role.user_id = #{id}
+          and admin_role.id = admin_user_role.role_id
+    </select>
+
+    <resultMap id="selectRoleResultMap" type="com.lln.agriculture.manage.domain.authority.AdminRole">
+        <id property="id" column="role_id"/>
+        <result property="role" column="role"/>
+        <result property="description" column="role_description"/>
+    </resultMap>
+
+    <!--分页查询角色完成，用于显示到前端，注意这里没有权限信息-->
+    <select id="isExist" resultType="boolean">
+        select count(*)
+        from admin_user
+        where username = #{username,jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insertAdminUserRole">
+        insert into admin_user_role(user_id, role_id)
+        values (#{param1}, #{param2})
+    </insert>
+
+    <update id="updateByIdSelective">
+        update admin_user
+        <set>
+            <if test="description != null and description != ''">
+                description=#{description},
+            </if>
+            <if test="password != null and password != ''">
+                `password`= #{password},
+            </if>
+            <if test="enabled != null">
+                enabled=#{enabled},
+            </if>
+            <if test="accountNonLocked != null">
+                account_non_locked=#{accountNonLocked},
+            </if>
+            <if test="avatar != null">
+                avatar=#{avatar}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="selectOriginalRoles" resultType="java.lang.Integer">
+        select role_id
+        from admin_user_role
+        where user_id = #{userId,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteAdminUserRole">
+        delete
+        from admin_user_role
+        where user_id = #{param1}
+          and role_id = #{param2}
+    </delete>
+
+    <delete id="deleteAllAdminUserRole">
+        delete
+        from admin_user_role
+        where user_id = #{id}
+    </delete>
+
+    <delete id="deleteUser">
+        delete
+        from admin_user
+        where id = #{id}
+    </delete>
+
+    <select id="selectIdByUsername" resultType="java.lang.Integer">
+        select id
+        from admin_user
+        where username = #{username}
+    </select>
+
+    <select id="selectAvatar" resultType="java.lang.String">
+        select avatar
+        from admin_user
+        where username = #{username,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectUsernameById" resultType="java.lang.String">
+        select username
+        from admin_user
+        where id = #{id}
+    </select>
+
+    <select id="selectDescriptionByUsername" resultType="java.lang.String">
+        select description
+        from admin_user
+        where username = #{username,jdbcType=VARCHAR}
+    </select>
+</mapper>

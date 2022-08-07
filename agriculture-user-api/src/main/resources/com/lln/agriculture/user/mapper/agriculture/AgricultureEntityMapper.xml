@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.user.mapper.agriculture.AgricultureEntityMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.common.agriculture.AgricultureEntity">
+        <!--@mbg.generated-->
+        <!--@Table agriculture_entity-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="image" jdbcType="VARCHAR" property="image"/>
+        <result column="description" jdbcType="LONGVARCHAR" property="description"/>
+        <result column="plant" jdbcType="BOOLEAN" property="plant"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, `name`,image, description, plant
+    </sql>
+    <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="com.lln.agriculture.common.agriculture.AgricultureEntity" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into agriculture_entity (`name`, image, description, plant)
+        values (#{name,jdbcType=VARCHAR}, #{image,jdbcType=VARCHAR}, #{description,jdbcType=LONGVARCHAR},
+                #{plant,jdbcType=BOOLEAN})
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id"
+            parameterType="com.lln.agriculture.common.agriculture.AgricultureEntity" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into agriculture_entity
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">
+                `name`,
+            </if>
+            <if test="image != null">
+                image,
+            </if>
+            <if test="description != null">
+                description,
+            </if>
+            <if test="plant != null">
+                plant,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="image != null">
+                #{image,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="plant != null">
+                #{plant,jdbcType=BOOLEAN},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.lln.agriculture.common.agriculture.AgricultureEntity">
+        <!--@mbg.generated-->
+        update agriculture_entity
+        <set>
+            <if test="name != null">
+                `name` = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="image != null">
+                image=#{image,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                description = #{description,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="plant != null">
+                plant = #{plant,jdbcType=BOOLEAN},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectAllEntityPage" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from agriculture_entity
+        <where>
+            <if test="plant">
+                plant = 1
+            </if>
+            <if test="plant == false">
+                and plant = 0
+            </if>
+            <if test="key != null and key != ''">
+                and name like '%${key}%'
+                        or id = #{key,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteByPrimaryKey">
+        delete
+        from agriculture_entity
+        where id = #{id}
+    </delete>
+</mapper>

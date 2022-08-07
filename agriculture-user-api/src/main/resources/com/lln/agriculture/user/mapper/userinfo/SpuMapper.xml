@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.user.mapper.userinfo.SpuMapper">
+    <select id="selectLatestSimpleSpu" resultMap="selectLatestSimpleSpu">
+        select id, name
+        from spu
+        where spu.saleable = 1
+        order by id desc
+        limit #{num};
+    </select>
+
+    <resultMap id="selectLatestSimpleSpu" type="com.lln.agriculture.user.domain.item.SimpleSpu">
+        <id column="id" property="id"/>
+        <result property="name" column="name"/>
+        <association property="price" javaType="java.lang.Integer" select="selectLowPriceFromSku" column="id">
+        </association>
+        <association property="imageUrl" javaType="java.lang.String" column="id" select="selectFirstImage">
+        </association>
+    </resultMap>
+
+    <select id="selectLowPriceFromSku" resultType="java.lang.Integer">
+        select min(price)
+        from sku
+        where spu_id = #{id}
+    </select>
+
+    <select id="selectFirstImage" resultType="java.lang.String">
+        select img
+        from spu_img
+        where spu_id = #{id}
+        limit 1
+    </select>
+
+
+    <select id="selectSimpleSpuBySkuId" resultMap="selectLatestSimpleSpu">
+        select spu.id, spu.name
+        from sku,
+             spu
+        where sku.id = #{skuId}
+          and sku.spu_id = spu.id
+          and spu.saleable = 1
+    </select>
+
+    <select id="selectSpuById" resultMap="selectSpuByIdMap">
+        select spu.id                  spuId,
+               spu.name                spuName,
+               saleable                saleable,
+               `delete`,
+               brand_id                brandId,
+               brand.name              brandName,
+               spu_img.id              imgId,
+               spu_img.img             img,
+               category.id             categoryId,
+               category.name           categoryName,
+               spu_info.attr           attr,
+               spu_info.description    description,
+               spu_info.id             infoId,
+               spu_info.specification  specification,
+               sku.id                  skuId,
+               sku.price               skuPrice,
+               sku.specification_value specificationValue,
+               sku.stock               skuStock,
+               sku.name                skuName
+        from spu,
+             brand,
+             spu_img,
+             spu_category,
+             category,
+             spu_info,
+             sku
+        where spu.brand_id = brand.id
+          and spu.id = spu_img.spu_id
+          and spu_category.spu_id = spu.id
+          and spu_category.category_id = category.id
+          and spu_info.spu_id = spu.id
+          and sku.spu_id = spu.id
+          and spu.id = #{spuId}
+    </select>
+
+
+    <resultMap id="selectSpuByIdMap" type="com.lln.agriculture.common.domain.item.Spu">
+        <id column="spuId" property="id"/>
+        <result column="spuName" property="name"/>
+        <result column="saleable" property="saleable"/>
+        <result property="delete" column="delete"/>
+        <association property="brand" javaType="com.lln.agriculture.common.domain.item.Brand">
+            <id column="brandId" property="id"/>
+            <result column="brandName" property="name"/>
+        </association>
+        <association property="spuInfo" javaType="com.lln.agriculture.common.domain.item.SpuInfo">
+            <id property="id" column="infoId"/>
+            <result column="spuId" property="spuId"/>
+            <result property="attr" column="attr"/>
+            <result property="description" column="description"/>
+            <result property="specification" column="specification"/>
+        </association>
+        <collection property="spuImgs" ofType="com.lln.agriculture.common.domain.item.SpuImg">
+            <id property="id" column="imgId"/>
+            <result property="spuId" column="spuId"/>
+            <result column="img" property="img"/>
+        </collection>
+        <collection property="categories" ofType="com.lln.agriculture.common.domain.item.Category">
+            <id property="id" column="categoryId"/>
+            <result property="name" column="categoryName"/>
+        </collection>
+        <collection property="skus" ofType="com.lln.agriculture.common.domain.item.Sku">
+            <id property="id" column="skuId"/>
+            <result property="spuId" column="spuId"/>
+            <result property="price" column="skuPrice"/>
+            <result property="specificationValue" column="specificationValue"/>
+            <result property="stock" column="skuStock"/>
+            <result property="name" column="skuName"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectSkuBySkuId" resultMap="skuMap">
+        select id, spu_id, specification_value, price, stock, name
+        from sku
+        where id = #{skuId}
+    </select>
+
+    <resultMap id="skuMap" type="com.lln.agriculture.common.domain.item.Sku">
+        <id column="id" property="id"/>
+        <result property="spuId" column="spu_id"/>
+        <result column="specification_value" property="specificationValue"/>
+        <result property="price" column="price"/>
+        <result column="stock" property="stock"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <select id="searchSimpleSpu" resultMap="selectLatestSimpleSpu">
+        select id, name
+        from spu
+        where name like '%${_parameter}%'
+          and saleable = 1
+        order by id desc
+    </select>
+</mapper>

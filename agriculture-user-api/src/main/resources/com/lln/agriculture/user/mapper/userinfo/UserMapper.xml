@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.user.mapper.userinfo.UserMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.common.domain.userinfo.User">
+        <!--@mbg.generated-->
+        <!--@Table `user`-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="avatar" jdbcType="LONGVARCHAR" property="avatar"/>
+        <result column="email" jdbcType="LONGVARCHAR" property="email"/>
+        <result column="enabled" jdbcType="BOOLEAN" property="enabled"/>
+        <result column="account_non_locked" jdbcType="BOOLEAN" property="accountNonLocked"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, username, `password`, avatar, email, `enabled`, account_non_locked
+    </sql>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.lln.agriculture.common.domain.userinfo.User"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into `user` (username, `password`, avatar,
+                            email, `enabled`, account_non_locked)
+        values (#{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{avatar,jdbcType=LONGVARCHAR},
+                #{email,jdbcType=LONGVARCHAR}, #{enabled,jdbcType=BOOLEAN}, #{accountNonLocked,jdbcType=BOOLEAN})
+    </insert>
+
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List">
+        </include>
+        from user
+        where username = #{username}
+    </select>
+
+    <select id="isExistByUsername" resultType="boolean">
+        select count(*)
+        from user
+        where username = #{username}
+    </select>
+
+    <select id="isExistByEmail" resultType="boolean">
+        select count(*)
+        from user
+        where email = #{email}
+    </select>
+
+    <update id="enableUser">
+        update user
+        set enabled=1
+        where username = #{username}
+    </update>
+
+    <select id="isMailValidated" resultType="boolean">
+        select count(*)
+        from user
+        where email = #{email}
+          and enabled = 1
+    </select>
+
+    <select id="selectUsernameByEmail" resultType="java.lang.String">
+        select username
+        from user
+        where email = #{email};
+    </select>
+
+    <update id="changePassword">
+        update user
+        set password=#{param2}
+        where username = #{param1}
+    </update>
+
+    <select id="selectUserPassword" resultType="java.lang.String">
+        select password
+        from user
+        where username = #{username}
+    </select>
+
+    <select id="selectUserIdByUsername" resultType="int">
+        select id
+        from user
+        where username = #{username}
+    </select>
+
+    <select id="selectUsernameById" resultType="java.lang.String">
+        select username
+        from user
+        where id = #{id}
+    </select>
+
+    <select id="selectDefaultAddressByUsername"
+            resultMap="com.lln.agriculture.user.mapper.userinfo.AddressMapper.BaseResultMap">
+        select address.id      id,
+               address.user_id user_id,
+               address.name    name,
+               address.phone   phone,
+               address.address address,
+               address.detail  detail
+        from user,
+             address
+        where username = #{username}
+          and address.id = default_address
+          and user.id = address.user_id
+    </select>
+
+    <update id="updateDefaultAddressByUsername">
+        update user
+        set default_address=#{param2,jdbcType=INTEGER}
+        where username = #{param1,jdbcType=VARCHAR}
+    </update>
+</mapper>

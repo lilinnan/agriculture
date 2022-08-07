@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.manage.mapper.item.SkuMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.common.domain.item.Sku">
+        <!--@mbg.generated-->
+        <!--@Table sku-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="spu_id" jdbcType="INTEGER" property="spuId"/>
+        <result column="specification_value" jdbcType="VARCHAR" property="specificationValue"/>
+        <result column="price" jdbcType="BIGINT" property="price"/>
+        <result column="stock" jdbcType="INTEGER" property="stock"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, spu_id, specification_value, price, stock
+    </sql>
+    <insert id="insert" keyColumn="id" keyProperty="param2.id" parameterType="com.lln.agriculture.common.domain.item.Sku"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into sku (spu_id, specification_value, price,
+                         stock, name)
+        values (#{param1,jdbcType=INTEGER}, #{param2.specificationValue,jdbcType=VARCHAR},
+                #{param2.price,jdbcType=BIGINT},
+                #{param2.stock,jdbcType=INTEGER}, #{param2.name,jdbcType=VARCHAR})
+    </insert>
+
+    <delete id="deleteSkuBySpuId">
+        delete
+        from sku
+        where spu_id = #{spuId}
+    </delete>
+
+    <update id="updateSkuBySpecificationValueAndSpuId">
+        update sku
+        set stock=#{param2.stock},
+            price=#{param2.price}
+        where spu_id = #{param1}
+          and specification_value = #{param2.specificationValue}
+    </update>
+</mapper>

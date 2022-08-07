@@ -1,0 +1,239 @@
+<template>
+  <v-container>
+    <v-data-table
+        :items-per-page=5
+        :headers="tableInfo.headers"
+        :items="showData.data"
+        :options.sync="options"
+        :server-items-length="showData.total"
+        :loading="tableInfo.loading"
+        class="elevation-1"
+        :multi-sort="true"
+        :footer-props="{
+          showFirstLastPage: true,
+          firstIcon: 'mdi-arrow-collapse-left',
+          lastIcon: 'mdi-arrow-collapse-right',
+          prevIcon: 'mdi-minus',
+          nextIcon: 'mdi-plus'
+        }"
+    >
+
+      <template v-slot:item.actions="{ item }">
+        <v-icon
+            small
+            class="mr-2"
+            @click="startEdit(item)"
+        >
+          mdi-pencil
+        </v-icon>
+        <v-icon
+            small
+            @click="startDelete(item)"
+        >
+          mdi-delete
+        </v-icon>
+      </template>
+
+      <template v-slot:top>
+        <v-toolbar flat rounded>
+          <v-toolbar-title>{{ pageInfo.pageTitle }}</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-text-field
+              v-model="otherData.searchKey"
+              @blur="getDataFromApi"
+              ref="searchInput"
+              @keyup.enter="$refs.searchInput.blur()"
+              style="margin: 0;padding: 0"
+              append-icon="mdi-magnify"
+              :label="pageInfo.searchTitle"
+              single-line
+              hide-details
+          ></v-text-field>
+          <v-dialog v-model="dialogInfo.editOrAddDialog" max-width="600px" persistent>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                  icon
+                  v-bind="attrs"
+                  v-on="on"
+                  @click="startAdd"
+              >
+                <v-icon>mdi-plus</v-icon>
+              </v-btn>
+            </template>
+            <v-card>
+              <v-card-title>
+                <span class="headline">{{ dialogInfo.editOrAddDialogTitle }}</span>
+              </v-card-title>
+              <v-card-text>
+                <v-container>
+                  <v-form ref="form">
+                    <v-text-field
+                        type="text"
+                        autocomplete="off"
+                        label="品牌名称"
+                        v-model="editOrAddData.brandName"
+                        :rules="editRules.brandNameRule"
+                        required
+                    ></v-text-field>
+                  </v-form>
+                </v-container>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="primary" text @click="resetEditData">取消</v-btn>
+                <v-btn color="primary" text @click="save">保存</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-toolbar>
+      </template>
+    </v-data-table>
+    <v-dialog v-model="dialogInfo.deleteDialog" persistent max-width="360">
+      <v-card>
+        <v-card-title class="headline">警告</v-card-title>
+        <v-card-text>您确定要删除此品牌吗？
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="error" text @click="realDelete">确定</v-btn>
+          <v-btn color="primary" text @click="dialogInfo.deleteDialog=false">取消</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-container>
+</template>
+
+<script>
+export default {
+  name: "Brand",
+  data: () => ({
+    pageInfo: {
+      pageTitle: '品牌管理',
+      searchTitle: '搜索（输入品牌id、品牌名称均可）',
+      optionUrl: 'item/brand'
+    },
+    showData: {
+      //向页面展示的数据
+      total: 0,
+      data: [],
+    },
+    tableInfo: {
+      //表格的数据信息
+      loading: true,
+      headers: [
+        {text: 'ID', value: 'id'},
+        {text: '品牌名称', value: 'name'},
+        {text: '操作', value: 'actions', sortable: false},
+      ],
+    },
+    options: {},
+    dialogInfo: {
+      editOrAddDialog: false,
+      editOrAddDialogTitle: '',
+      deleteDialog: false,
+    },
+    editRules: {
+      brandNameRule: [
+        v => !!v || '请输入品牌信息',
+      ]
+    },
+    editOrAddData: {
+      id: -1,
+      brandName: ''
+    },
+    deleteData: {
+      deleteId: -1
+    },
+    otherData: {
+      searchKey: '',
+    },
+  }),
+  watch: {
+    options: {
+      handler() {
+        this.getDataFromApi();
+      },
+      deep: true,
+    },
+  },
+  methods: {
+    getDataFromApi() {
+      this.loading = true;
+      this.$search(this.pageInfo.optionUrl, this.options, this.otherData.searchKey).then(result => {
+        if (result.status === 200) {
+          this.showData.data = result.data.list
+          this.showData.total = result.data.total
+          this.tableInfo.loading = false
+          return;
+        }
+        this.$toast.error(result['message']);
+      });
+    },
+    startEdit(item) {
+      this.dialogInfo.editOrAddDialogTitle = "编辑";
+      this.editOrAddData.id = item.id;
+      this.dialogInfo.editOrAddDialog = true;
+      this.editOrAddData.brandName = item['name'];
+    },
+    startAdd() {
+      this.dialogInfo.editOrAddDialogTitle = "添加";
+      this.editOrAddData.id = -1;
+    },
+    resetEditData() {
+      this.dialogInfo.editOrAddDialog = false
+      this.$refs.form.reset()
+    },
+    save() {
+      if (!this.$refs.form.validate()) {
+        this.$toast.warning("请检查您输入的数据");
+        return;
+      }
+      let data = {
+        name: this.editOrAddData.brandName
+      }
+      if (this.editOrAddData.id === -1) {
+        this.$http.post(this.pageInfo.optionUrl, data).then(value => {
+          if (value.status === 200) {
+            this.$toast.success("添加成功");
+            this.getDataFromApi();
+            this.resetEditData();
+            return;
+          }
+          this.$toast.error(value['message']);
+        })
+        return;
+      }
+      data = Object.assign(data, {id: this.editOrAddData.id})
+      this.$http.put(this.pageInfo.optionUrl, data).then(value => {
+        if (value.status === 200) {
+          this.$toast.success("修改成功");
+          this.getDataFromApi();
+          this.resetEditData();
+          return;
+        }
+        this.$toast.error(value['message']);
+      })
+    },
+    startDelete(item) {
+      this.dialogInfo.deleteDialog = true;
+      this.deleteData.deleteId = item.id;
+    },
+    realDelete() {
+      this.$http.delete(this.pageInfo.optionUrl + "/" + this.deleteData.deleteId).then(value => {
+        if (value.status === 200) {
+          this.$toast.success("删除成功");
+          this.getDataFromApi();
+          this.dialogInfo.deleteDialog = false;
+          return;
+        }
+        this.dialogInfo.deleteDialog = false;
+        this.$toast.error(value['message']);
+      })
+    },
+  },
+}
+</script>
+
+<style scoped>
+
+</style>

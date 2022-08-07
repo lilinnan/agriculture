@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lln.agriculture.manage.mapper.authority.AdminRoleMapper">
+    <resultMap id="BaseResultMap" type="com.lln.agriculture.manage.domain.authority.AdminRole">
+        <!--@mbg.generated-->
+        <!--@Table admin_role-->
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="role" jdbcType="VARCHAR" property="role"/>
+        <result column="role_description" jdbcType="VARCHAR" property="description"/>
+        <collection property="authorities" ofType="com.lln.agriculture.manage.domain.authority.AdminAuthority">
+            <id property="id" column="authority_id"/>
+            <result property="authority" column="authority"/>
+            <result property="description" column="authority_description"/>
+        </collection>
+    </resultMap>
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        id, `role`, description
+    </sql>
+    <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="com.lln.agriculture.manage.domain.authority.AdminRole"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into admin_role (`role`, description)
+        values (#{role,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR})
+    </insert>
+
+
+    <!--这个不能分页，会出错-->
+    <select id="selectAll" resultMap="BaseResultMap">
+        select admin_role.id               id,
+               admin_role.role             role,
+               admin_role.description      role_description,
+               admin_authority.id          authority_id,
+               admin_authority.authority   authority,
+               admin_authority.description authority_description
+        from admin_role
+                     LEFT JOIN admin_role_authority on admin_role.id = admin_role_authority.role_id
+                     LEFT JOIN admin_authority on admin_role_authority.authority_id = admin_authority.id
+    </select>
+
+
+    <!--查询简易版信息-->
+    <select id="selectAllSimple" resultMap="BaseResultMap" parameterType="string">
+        select admin_role.id          id,
+               admin_role.role        role,
+               admin_role.description role_description
+        from admin_role
+        <where>
+            <if test="_parameter != null and _parameter != ''">
+                admin_role.id like '${_parameter}'
+                        or admin_role.role like '%${_parameter}%'
+                        or admin_role.description like '%${_parameter}%'
+            </if>
+        </where>
+    </select>
+
+
+    <!--分页查询角色信息 start-->
+    <select id="selectAllPage" resultMap="selectAllPageResultMap" parameterType="string">
+        select admin_role.id          id,
+               admin_role.role        role,
+               admin_role.description role_description
+        from admin_role
+        <where>
+            <if test="_parameter != null and _parameter != ''">
+                admin_role.id = '${_parameter}'
+                        or admin_role.role like '%${_parameter}%'
+                        or admin_role.description like '%${_parameter}%'
+            </if>
+        </where>
+    </select>
+
+    <resultMap id="selectAllPageResultMap" type="com.lln.agriculture.manage.domain.authority.AdminRole">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="role" jdbcType="VARCHAR" property="role"/>
+        <result column="role_description" jdbcType="VARCHAR" property="description"/>
+        <collection property="authorities" ofType="com.lln.agriculture.manage.domain.authority.AdminAuthority"
+                    select="selectAuthorityByRoleId" column="id"/>
+    </resultMap>
+
+    <select id="selectAuthorityByRoleId" parameterType="int" resultMap="selectAuthorityResultMap">
+        select admin_authority.id          authority_id,
+               admin_authority.authority   authority,
+               admin_authority.description authority_description
+        from admin_role_authority,
+             admin_authority
+        where admin_role_authority.role_id = #{id}
+          and admin_authority.id = admin_role_authority.authority_id
+    </select>
+
+    <resultMap id="selectAuthorityResultMap" type="com.lln.agriculture.manage.domain.authority.AdminAuthority">
+        <id property="id" column="authority_id"/>
+        <result property="authority" column="authority"/>
+        <result property="description" column="authority_description"/>
+    </resultMap>
+    <!--分页查询角色信息 end-->
+
+    <!--插入角色与权限的关系-->
+    <insert id="insertAdminRoleAuthority" parameterType="int">
+        insert into admin_role_authority(role_id, authority_id)
+        values (#{param1}, #{param2})
+    </insert>
+    <!--删除角色与权限的关系-->
+    <delete id="deleteAdminRoleAuthority">
+        delete
+        from admin_role_authority
+        where role_id = #{param1}
+          and authority_id = #{param2}
+    </delete>
+
+    <select id="isExist" resultType="boolean">
+        select count(*)
+        from admin_role
+        where role = #{role,jdbcType=VARCHAR}
+    </select>
+
+
+    <!--查询本来拥有的权限-->
+    <select id="selectOriginalAuthorities" resultType="java.lang.Integer">
+        select authority_id
+        from admin_role_authority
+        where role_id = #{roleId}
+    </select>
+
+    <update id="updateByIdSelective" parameterType="com.lln.agriculture.manage.domain.authority.AdminRole">
+        update admin_role
+        <set>
+            <if test="role != null and role != ''">
+                role = #{role,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <delete id="deleteRole" parameterType="int">
+        delete
+        from admin_role
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteAllAdminRoleAuthority">
+        delete
+        from admin_role_authority
+        where role_id = #{roleId}
+    </delete>
+
+    <select id="selectIdByRoleName" resultType="java.lang.Integer">
+        select id
+        from admin_role
+        where role = #{role}
+    </select>
+
+    <select id="selectRoleNameByRoleId" resultType="java.lang.String">
+        select role
+        from admin_role
+        where id = #{roleId,jdbcType=INTEGER}
+    </select>
+</mapper>
